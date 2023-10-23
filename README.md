@@ -52,183 +52,37 @@ Throughout the modeling phase, model interpretability will be considered. Interp
 
 The final model selected for deployment will be the one that demonstrates the best performance in terms of accurately predicting customer churn. Its predictive power, along with its interpretability, will assist Syria Telecom in identifying at-risk customers and implementing proactive measures to reduce churn and improve customer retention.
 
-We start off with performing a Train Test Split
-'''python 
-# Import the relevant function
-from sklearn.model_selection import train_test_split
+**Model Building and Evaluation Steps:**
 
-# Split df into X and y
-X = df.drop("Cover_Type", axis=1)
-y = df["Cover_Type"]
+**Train-Test Split:**
+   - Begin by splitting the dataset into training and testing sets. This will enable us to train and evaluate our models on different data subsets to assess their performance.
 
-# Perform train-test split with random_state=42 and stratify=y
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-'''
+**Baseline Model:**
+   - Build a simple, interpretable baseline model, such as logistic regression, using the training data. This will serve as a reference for model performance.
+   - Evaluate the baseline model's performance using standard metrics like accuracy, precision, recall, and ROC-AUC.
 
-we thereafter build and evaluate a baseline model
+**Custom Cross-Validation Function:**
+   - Develop a custom cross-validation function that will allow us to assess model performance more robustly. This function should take care of splitting the data, training, and evaluation within a cross-validation loop.
 
-'''python
-# Import relevant classes and functions
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
-import numpy as np
+**StratifiedKFold for Splitting:**
+   - Utilize StratifiedKFold, a type of cross-validation strategy, to provide information for creating separate training and validation splits within the training dataset. StratifiedKFold ensures that the class distribution remains balanced in each fold.
 
-# Instantiate a LogisticRegression with random_state=42
-baseline_model = LogisticRegression(random_state=42)
+**Custom Cross-Validation with StratifiedKFold:**
+   - Implement the custom cross-validation function with StratifiedKFold to train and evaluate the baseline model and later models within a cross-validation framework.
+   - Compare the model's performance using custom cross-validation with the baseline log loss to assess any improvements.
 
-# Use cross_val_score with scoring="neg_log_loss" to evaluate the model on X_train and y_train
-baseline_neg_log_loss_cv = cross_val_score(baseline_model, X_train, y_train, cv=5, scoring="neg_log_loss")
+**Choosing and Evaluating a Final Model:**
+   - Evaluate the performance of different models, including the baseline model, more complex models (e.g., random forest), and tuned models.
+   - Select the model that exhibits the best performance based on evaluation metrics.
 
-# Calculate the mean log loss by negating the mean of baseline_neg_log_loss_cv
-baseline_log_loss = -(baseline_neg_log_loss_cv.mean())
-baseline_log_loss
-'''
+**Fitting the Final Model:**
+   - Once the final model is chosen, fit it on the full training dataset. This will enable the model to learn from all the available training data.
 
-We write a custom cross validation function
+**Evaluating on Test Data:**
+   - Assess the model's performance on the test dataset. This step provides a realistic evaluation of how the model will perform in real-world scenarios.
 
+Throughout these steps, attention was given to evaluation metrics, model interpretability, and the ability to generalize to unseen data. The final model selected would demonstrate improved predictive power and contribute to Syria Telecom's efforts in reducing customer churn and improving customer retention.
 
-'''python
-baseline_model = LogisticRegression(random_state=42)
-baseline_neg_log_loss_cv = cross_val_score(baseline_model, X_train, y_train, scoring="neg_log_loss")
-baseline_log_loss = -(baseline_neg_log_loss_cv.mean())
-baseline_log_loss
-'''
-We thn use stratifiedKFold to provide the information we need to make seperate train test splits inside X_train
-
-'''python
-# Run this cell without changes
-from sklearn.metrics import make_scorer
-from sklearn.model_selection import StratifiedKFold
-from sklearn.base import clone
-
-# Negative log loss doesn't exist as something we can import,
-# but we can create it
-neg_log_loss = make_scorer(log_loss, greater_is_better=False, needs_proba=True)
-
-# Instantiate the model (same as previous example)
-baseline_model = LogisticRegression(random_state=42)
-
-# Create a list to hold the score from each fold
-kfold_scores = np.ndarray(5)
-
-# Instantiate a splitter object and loop over its result
-kfold = StratifiedKFold()
-for fold, (train_index, val_index) in enumerate(kfold.split(X_train, y_train)):
-    # Extract train and validation subsets using the provided indices
-    X_t, X_val = X_train.iloc[train_index], X_train.iloc[val_index]
-    y_t, y_val = y_train.iloc[train_index], y_train.iloc[val_index]
-    
-    # Clone the provided model and fit it on the train subset
-    temp_model = clone(baseline_model)
-    temp_model.fit(X_t, y_t)
-    
-    # Evaluate the provided model on the validation subset
-    neg_log_loss_score = neg_log_loss(temp_model, X_val, y_val)
-    kfold_scores[fold] = neg_log_loss_score
-    
--(kfold_scores.mean())
-'''
-
-Using the custom cross validation function with stratifiedKFold
-
-'''python
-# Import relevant sklearn and imblearn classes
-from sklearn.base import clone
-from sklearn.model_selection import StratifiedKFold
-from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import SMOTE
-
-def custom_cross_val_score(estimator, X, y):
-    # Create a list to hold the scores from each fold
-    kfold_train_scores = np.ndarray(5)
-    kfold_val_scores = np.ndarray(5)
-
-    # Instantiate a splitter object and loop over its result
-    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)  # Add shuffle and random_state
-    for fold, (train_index, val_index) in enumerate(kfold.split(X, y)):
-        # Extract train and validation subsets using the provided indices
-        X_t, X_val = X.iloc[train_index], X.iloc[val_index]
-        y_t, y_val = y.iloc[train_index], y.iloc[val_index]
-        
-        # Instantiate StandardScaler
-        scaler = StandardScaler()  # Instantiate StandardScaler
-        # Fit and transform X_t
-        X_t_scaled = scaler.fit_transform(X_t)  # Fit and transform X_t
-        # Transform X_val
-        X_val_scaled = scaler.transform(X_val)  # Transform X_val
-        
-        # Instantiate SMOTE with random_state=42 and sampling_strategy=0.28
-        sm = SMOTE(sampling_strategy=0.28, random_state=42)  # Instantiate SMOTE
-        # Fit and transform X_t_scaled and y_t using sm
-        X_t_oversampled, y_t_oversampled = sm.fit_resample(X_t_scaled, y_t)  # Fit and transform using SMOTE
-        
-        # Clone the provided model and fit it on the train subset
-        temp_model = clone(estimator)
-        temp_model.fit(X_t_oversampled, y_t_oversampled)
-        
-        # Evaluate the provided model on the train and validation subsets
-        neg_log_loss_score_train = -log_loss(y_t_oversampled, temp_model.predict_proba(X_t_oversampled))
-        neg_log_loss_score_val = -log_loss(y_val, temp_model.predict_proba(X_val_scaled))
-        kfold_train_scores[fold] = neg_log_loss_score_train
-        kfold_val_scores[fold] = neg_log_loss_score_val
-        
-    return kfold_train_scores, kfold_val_scores
-
-model_with_preprocessing = LogisticRegression(random_state=42, class_weight={1: 0.28})
-preprocessed_train_scores, preprocessed_neg_log_loss_cv = custom_cross_val_score(model_with_preprocessing, X_train, y_train)
--(preprocessed_neg_log_loss_cv.mean())
-'''
-
-comparing with the baseline log loss
-
-'''python
-# Run this cell without changes
-print(-baseline_neg_log_loss_cv.mean())
-print(-preprocessed_neg_log_loss_cv.mean())
-'''
-
-Evaluating our model using the custom cross val score
-'''python
-# Replace None with appropriate code
-less_regularization_train_scores, less_regularization_val_scores = None
-
-print("Previous Model")
-print("Train average:     ", -preprocessed_train_scores.mean())
-print("Validation average:", -preprocessed_neg_log_loss_cv.mean())
-print("Current Model")
-print("Train average:     ", -less_regularization_train_scores.mean())
-print("Validation average:", -less_regularization_val_scores.mean())
-'''
-
-Chosing and evaluating a final model
-'''python
-# Run this cell without changes
-final_model = model_less_regularization
-
-# Instantiate StandardScaler
-scaler = StandardScaler()
-# Fit and transform X_train
-X_train_scaled = scaler.fit_transform(X_train)
-# Transform X_test
-X_test_scaled = scaler.transform(X_test)
-
-# Instantiate SMOTE with random_state=42 and sampling_strategy=0.28
-sm = SMOTE(sampling_strategy=0.28, random_state=42)
-# Fit and transform X_train_scaled and y_train using sm
-X_train_oversampled, y_train_oversampled = sm.fit_resample(X_train_scaled, y_train)
-
-'''
-
-We fit the model on the full training data
-'''python
-# Run this cell without changes
-final_model.fit(X_train_oversampled, y_train_oversampled)
-'''
-Evaluating the model on the test data
-'''python
-# Run this cell without changes
-log_loss(y_test, final_model.predict_proba(X_test_scaled))
-'''
 
 # Evaluation
 The dataset used for this project is sourced from Syria Telecom's internal database, which contains historical customer data with relevant features for the churn prediction task.
