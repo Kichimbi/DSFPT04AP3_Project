@@ -4,9 +4,9 @@ This data science project focuses on building a binary classifier to predict cus
 
 # Business Understanding
 
-* Stakeholders: The primary stakeholders include Syria Telecom's management, customer service teams, and marketing departments. They will be directly affected by the outcomes of this project.
-* Business Problem: The project aims to solve the problem of customer churn by identifying potential churners in advance, allowing the company to take targeted retention actions.
-* Scope: This project will focus on building a predictive model for customer churn. It is within the scope of the project to gather, preprocess, and analyze relevant data to construct this model.
+* Stakeholders: *The primary stakeholders include Syria Telecom's management, customer service teams, and marketing departments. They will be directly affected by the outcomes of this project.*
+* Business Problem: *The project aims to solve the problem of customer churn by identifying potential churners in advance, allowing the company to take targeted retention actions.*
+* Scope: *This project will focus on building a predictive model for customer churn. It is within the scope of the project to gather, preprocess, and analyze relevant data to construct this model.*
 
 # Data Understanding
 
@@ -20,15 +20,14 @@ This data science project focuses on building a binary classifier to predict cus
 * Data Quality: *Data quality will be verified during the preprocessing phase, and measures will be taken to address any potential issues.*
 
 ## Stakeholder audience choice
-The primary stakeholders in this project are the management, customer service teams, and marketing departments within Syria Telecom. Their collaboration and input are crucial for the project's success.
+The primary stakeholders in this project are the management, customer service teams, and marketing departments within Syria Telecom. Other stakeholders also include organizations that share a similar customer engagement model and not just the telecommunications industry for instance; cable TV, online streaming websites, digital and print media companies, retail and large scale vendors etc.
 
 ## Dataset choice
-The dataset used for this project is sourced from Syria Telecom through Keggle. It contains historical customer data with relevant features for the churn prediction.
+The dataset used for this project is sourced from Syria Telecom through Kaggle (https://www.kaggle.com/datasets/becksddf/churn-in-telecoms-dataset). It contains historical customer data with relevant features for the churn prediction.
 
 # Modeling
 
 The modeling phase of this project will involve the development of three different models, each with varying complexity and sophistication. These models will help us effectively predict customer churn for Syria Telecom.
-
 
 
 ## Simple Baseline Model (Logistic Regression):
